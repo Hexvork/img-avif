@@ -1,0 +1,229 @@
+---
+import { readdirSync } from 'node:fs'
+import { join } from 'node:path'
+
+const publicDir = join(process.cwd(), 'public')
+const entries = readdirSync(publicDir, { withFileTypes: true })
+const dirs = entries
+  .filter(e => e.isDirectory())
+  .map(e => {
+    const files = readdirSync(join(publicDir, e.name)).filter(f => !f.startsWith('.'))
+    return { name: e.name, count: files.length }
+  })
+  .sort((a, b) => Number(a.name) - Number(b.name))
+---
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>图片目录</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fafafa;
+      color: #333;
+      min-height: 100vh;
+    }
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-box {
+      width: 100%;
+      max-width: 360px;
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .login-box h1 {
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin-bottom: 24px;
+      color: #333;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+    .login-box input:focus {
+      border-color: #007bff;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-box button:hover {
+      background: #0056b3;
+    }
+    .login-box .error {
+      color: #dc3545;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      display: none;
+    }
+    header {
+      text-align: center;
+      padding: 40px 20px 20px;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+    header p {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: #999;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 24px 12px;
+      background: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow 0.15s;
+      border: 1px solid #eee;
+    }
+    .card:hover {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .folder {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      background: #f0c040;
+      position: relative;
+    }
+    .folder::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 0;
+      width: 24px;
+      height: 6px;
+      border-radius: 3px 3px 0 0;
+      background: #f0c040;
+    }
+    .name {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    .count {
+      font-size: 0.78rem;
+      color: #aaa;
+    }
+    .logout {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      color: #666;
+      text-decoration: none;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #eee;
+    }
+    .logout:hover {
+      color: #dc3545;
+      border-color: #dc3545;
+    }
+  </style>
+  <script>
+    const TARGET_PASSWORD = 'i@hexvork.com'
+
+    function checkPassword() {
+      const password = document.getElementById('password').value
+      if (password === TARGET_PASSWORD) {
+        localStorage.setItem('authenticated', 'true')
+        document.getElementById('login').style.display = 'none'
+        document.getElementById('content').style.display = 'block'
+        document.getElementById('error').style.display = 'none'
+      } else {
+        document.getElementById('error').style.display = 'block'
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('authenticated')
+      document.getElementById('content').style.display = 'none'
+      document.getElementById('login').style.display = 'flex'
+      document.getElementById('password').value = ''
+      document.getElementById('error').style.display = 'none'
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('loginBtn').addEventListener('click', checkPassword)
+      document.getElementById('password').addEventListener('keydown', e => {
+        if (e.key === 'Enter') checkPassword()
+      })
+      document.getElementById('logoutBtn').addEventListener('click', logout)
+
+      if (localStorage.getItem('authenticated') === 'true') {
+        document.getElementById('login').style.display = 'none'
+        document.getElementById('content').style.display = 'block'
+      }
+    })
+  </script>
+</head>
+<body>
+  <div id="login" class="login-container">
+    <div class="login-box">
+      <h1>请输入密码</h1>
+      <input type="password" id="password" placeholder="密码" autocomplete="off" />
+      <button id="loginBtn">确认</button>
+      <div id="error" class="error">密码错误，请重试</div>
+    </div>
+  </div>
+
+  <div id="content" style="display: none;">
+    <a href="#" id="logoutBtn" class="logout">退出</a>
+    <header>
+      <h1>图片目录</h1>
+      <p>{dirs.length} 个目录</p>
+    </header>
+    <div class="grid">
+      {dirs.map(d => (
+        <a class="card" href={`/${d.name}/`}>
+          <div class="folder"></div>
+          <span class="name">{d.name}</span>
+          <span class="count">{d.count} 张图片</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</body>
+</html>
