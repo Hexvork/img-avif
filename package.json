@@ -7,7 +7,8 @@
     "p": "astro preview"
   },
   "devDependencies": {
-    "astro": "^5.0.0"
+    "astro": "^5.0.0",
+    "wrangler": "4.158.0"
   },
   "packageManager": "pnpm@10.24.0"
 }
