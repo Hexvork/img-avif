@@ -3,6 +3,7 @@
   "name": "img-avif",
   "compatibility_date": "2026-11-06",
   "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "directory": "./dist",
     "html_handling": "auto-trailing-slash",
